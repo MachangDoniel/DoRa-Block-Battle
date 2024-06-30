@@ -1,6 +1,7 @@
 import random
 import copy
 import numpy as np
+import time
 
 
 def create_DoRa_game(rows, cols):
@@ -120,7 +121,7 @@ class DoRaGame(object):
     def get_alpha_beta_move(self, vertical, limit):
 
         print("DoRa.py -> get_alpha_beta_move -----------------------------------------------------------------------------------")
-
+        # time.sleep(1)
         self.first_move = vertical
         self.max_limit = limit
         self.leaf_counter = 0
@@ -182,7 +183,7 @@ class DoRaGame(object):
     def get_genetic_algorithm_move(self, vertical, population_size, generations):
 
         print("DoRa.py -> get_genetic_algorithm_move -----------------------------------------------------------------------------------")
-
+        # time.sleep(1)
         population = self.initialize_population(population_size, vertical)
         
         for generation in range(generations):

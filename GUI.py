@@ -1,6 +1,7 @@
 import tkinter as tk
 import random
 import DoRa
+import time
 
 
 class Square(tk.Canvas):
@@ -52,6 +53,10 @@ class Board(tk.Frame):
                             lambda event, row=row, col=col: self.perform_move_2(row, col))
                 row_squares.append(square)
             self.squares.append(row_squares)
+    
+    def delay(self, n):
+        for i in range(n*1000000):
+            pass
 
     def perform_move(self, row, col):
         print('gui.py -> perform_move', self.mode)
@@ -68,25 +73,35 @@ class Board(tk.Frame):
             self.moved = True
         else:
             self.moved = False
+    
+    def perform_ai_move(self):
+        if self.moved and not self.game.game_over(self.vertical):
+            (row, col), best_value, total_leaves = \
+                self.game.get_alpha_beta_move(self.vertical, 1)
+            self.perform_move(row, col)
 
+    def perform_ai2_move(self):
+        if self.moved and not self.game.game_over(self.vertical):
+            row = col = fitness_value = -1
+            while not self.game.is_legal_move(row, col, self.vertical):
+                (row, col), fitness_value = \
+                    self.game.get_genetic_algorithm_move(self.vertical, 10, 10)
+            self.perform_move(row, col)
+    
     def perform_move_2(self, row, col):
         print('gui.py -> perform_move_2', self.mode, self.two_player)
+        self.perform_move(row, col)
+        
         if self.mode == "AI":
-            self.perform_move(row, col)
             if self.moved:
                 if not self.game.game_over(self.vertical):
-                    (row, col), best_value, total_leaves = \
-                        self.game.get_alpha_beta_move(self.vertical, 1)
-                    self.perform_move(row, col)
+                    self.after(1000, self.perform_ai_move)
+
         elif self.mode == "AI-2":
-            self.perform_move(row, col)
             if self.moved:
                 if not self.game.game_over(self.vertical):
-                    row = col = fitness_value = -1
-                    while not self.game.is_legal_move(row, col, self.vertical):
-                        (row, col), fitness_value = \
-                        self.game.get_genetic_algorithm_move(self.vertical, 10, 10)
-                    self.perform_move(row, col)
+                    self.after(1000, self.perform_ai2_move)
+            
         else:
             self.perform_move(row, col)
 
@@ -301,6 +316,7 @@ class BoardPage(tk.Frame):
                         (row, col), fitness_value = \
                         self.board.game.get_genetic_algorithm_move(self.board.vertical, 10, 10)
                     self.board.perform_move(row, col)
+            # time.sleep(1)
 
     def perform_alpha_beta_move(self):
         print("gui.py -> perform_alpha_beta_move -----------------------------------------------------------------------------------")
@@ -315,6 +331,7 @@ class BoardPage(tk.Frame):
                 (row, col), best_value, total_leaves = \
                     self.board.game.get_alpha_beta_move(self.board.vertical, 1)
                 self.board.perform_move(row, col)
+        # time.sleep(1)
 
     def perform_genetic_algorithm_move(self):
         print("gui.py -> perform_genetic_algorithm_move -----------------------------------------------------------------------------------")
@@ -333,6 +350,7 @@ class BoardPage(tk.Frame):
                     (row, col), fitness_value = \
                     self.board.game.get_genetic_algorithm_move(self.board.vertical, 10, 10)
                 self.board.perform_move(row, col)
+        # time.sleep(1)
 
 
 
