@@ -68,6 +68,11 @@ class Board(tk.Frame):
     def perform_move_2(self, row, col):
         if not self.two_player:
             self.perform_move(row, col)
+            if self.moved:
+                if not self.game.game_over(self.vertical):
+                    (row, col), best_value, total_leaves = \
+                        self.game.get_alpha_beta_move(self.vertical, 1)
+                    self.perform_move(row, col)
         else:
             self.perform_move(row, col)
 
@@ -127,7 +132,7 @@ class TossPage(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
         self.controller = controller
-        self.mode = "Two Player"
+        self.mode = "AI"
 
         self.label = tk.Label(self, text="", font=("Arial", 24))
         self.label.pack(pady=20)
@@ -186,8 +191,13 @@ class BoardPage(tk.Frame):
         self.update_status()
 
         tk.Label(menu, text="Press 'r' to perform a random move.").pack(padx=1, pady=1, anchor=tk.W)
+        tk.Label(menu, text="Press 'a' to perform a best move of alpha_beta pruning.").pack(padx=1, pady=1, anchor=tk.W)
+        ## tk.Label(menu, text="Press 'g' to perform a best move of genetic_algorithm.").pack(padx=1, pady=1, anchor=tk.W)
+        ## tk.Label(menu, text="Press 'f' to perform a best move of fuzzy_logic.").pack(padx=1, pady=1, anchor=tk.W)
+        ## tk.Label(menu, text="Press 's' to perform a best move of A_star.").pack(padx=1, pady=1, anchor=tk.W)
         
         tk.Button(menu, text="Two Player", command=self.two_player_move).pack(fill=tk.X, padx=1, pady=1)
+        tk.Button(menu, text="Play with AI",command=self.auto_move).pack(fill=tk.X, padx=1, pady=1)
         tk.Button(menu, text="Reset Game", command=self.reset_click).pack(fill=tk.X, padx=1, pady=1)
 
         menu.pack(side=tk.RIGHT)
@@ -195,6 +205,10 @@ class BoardPage(tk.Frame):
         self.focus_set()
 
         self.bind("r", lambda event: self.perform_random_move())
+        self.bind("a", lambda event: self.perform_alpha_beta_move())
+        ## self.bind("g", lambda event: self.perform_genetic_algorithm_move())
+        ## self.bind("f", lambda event: self.perform_fuzzy_logic_move())
+        ## self.bind("s", lambda event: self.perform_A_star_move())
 
     def return_to_toss(self):
         self.controller.show_frame("TossPage")

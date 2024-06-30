@@ -101,6 +101,59 @@ class DoRaGame(object):
     def get_random_move(self, vertical):
         return random.choice(list(self.legal_moves(vertical)))
 
+    def get_alpha_beta_move(self, vertical, limit):
+        self.first_move = vertical
+        self.max_limit = limit
+        self.leaf_counter = 0
+        self.alpha_beta_move = ()
+
+        v = self.alpha_beta_search(self.copy(), vertical)
+        return (self.alpha_beta_move, int(v), self.leaf_counter)
+
+    def alpha_beta_search(self, state, vertical):
+        v = self.max_value(state, vertical,  -np.inf, np.inf, 1)
+        return v
+
+    def max_value(self, state, vertical, alpha, beta, depth):
+        if depth > self.max_limit or state.game_over(vertical):
+            self.leaf_counter += 1
+            return state.evaluate_board(state, vertical)
+
+        v = -np.inf
+        self.alpha_beta_move = next(state.legal_moves(vertical))
+        for new_move, new_state in state.successors(vertical):
+            new_vertical = not vertical
+            new_v = np.max(
+                [v, self.min_value(new_state, new_vertical, alpha, beta, depth+1)])
+
+            if new_v > v:
+                self.alpha_beta_move = new_move
+
+            v = new_v
+
+            if v >= beta:
+                return v
+            alpha = np.max([alpha, v])
+
+        return v
+
+    def min_value(self, state, vertical, alpha, beta, depth):
+        if depth > self.max_limit or state.game_over(vertical):
+            self.leaf_counter += 1
+            return state.evaluate_board(state, not vertical)
+
+        v = np.inf
+        for _, new_state in state.successors(vertical):
+            new_vertical = not vertical
+            v = np.min([v, self.max_value(
+                new_state, new_vertical, alpha, beta, depth+1)])
+
+            if v <= alpha:
+                return v
+            beta = np.min([beta, v])
+
+        return v
+
     def evaluate_board(self, state, vertical):
         max_moves = list(state.legal_moves(vertical))
         min_moves = list(state.legal_moves(not vertical))
