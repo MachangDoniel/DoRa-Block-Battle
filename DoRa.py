@@ -264,25 +264,3 @@ class DoRaGame(object):
         min_moves = list(state.legal_moves(not vertical))
 
         return len(max_moves) - len(min_moves)
-
-    def get_fuzzy_logic_move(self, vertical):
-        print("DoRa.py -> get_fuzzy_logic_move")
-
-        # Example fuzzy logic: prefer center positions, avoid edges
-        best_move = None
-        best_score = -float('inf')
-
-        for (row, col) in self.legal_moves(vertical):
-            score = 0
-
-            # Prefer center positions
-            if row in {0, self.num_rows - 1} or col in {0, self.num_cols - 1}:
-                score -= 10  # Penalty for edges
-            else:
-                score += 10  # Reward for center
-
-            if score > best_score:
-                best_score = score
-                best_move = (row, col)
-
-        return best_move, best_score
