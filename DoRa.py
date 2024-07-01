@@ -3,13 +3,11 @@ import copy
 import numpy as np
 import time
 
-
 def create_DoRa_game(rows, cols):
     print('DoRa.py -> create_DoRa_game')
     row = [False for _ in range(cols)]
     board = [row.copy() for _ in range(rows)]
     return DoRaGame(board.copy())
-
 
 class DoRaGame(object):
 
@@ -119,9 +117,7 @@ class DoRaGame(object):
     # Alpha-Beta Pruning
 
     def get_alpha_beta_move(self, vertical, limit):
-
         print("DoRa.py -> get_alpha_beta_move -----------------------------------------------------------------------------------")
-        # time.sleep(1)
         self.first_move = vertical
         self.max_limit = limit
         self.leaf_counter = 0
@@ -145,8 +141,7 @@ class DoRaGame(object):
         self.alpha_beta_move = next(state.legal_moves(vertical))
         for new_move, new_state in state.successors(vertical):
             new_vertical = not vertical
-            new_v = np.max(
-                [v, self.min_value(new_state, new_vertical, alpha, beta, depth+1)])
+            new_v = np.max([v, self.min_value(new_state, new_vertical, alpha, beta, depth+1)])
 
             if new_v > v:
                 self.alpha_beta_move = new_move
@@ -168,8 +163,7 @@ class DoRaGame(object):
         v = np.inf
         for _, new_state in state.successors(vertical):
             new_vertical = not vertical
-            v = np.min([v, self.max_value(
-                new_state, new_vertical, alpha, beta, depth+1)])
+            v = np.min([v, self.max_value(new_state, new_vertical, alpha, beta, depth+1)])
 
             if v <= alpha:
                 return v
@@ -181,56 +175,38 @@ class DoRaGame(object):
     # Genetic Algorithm
 
     def get_genetic_algorithm_move(self, vertical, population_size, generations):
-
         print("DoRa.py -> get_genetic_algorithm_move -----------------------------------------------------------------------------------")
-        # time.sleep(1)
         population = self.initialize_population(population_size, vertical)
         
         for generation in range(generations):
-            # Evaluate fitness of each individual in the population
             fitness_scores = [self.evaluate_individual(individual, vertical) for individual in population]
-            
-            # Perform selection (tournament selection)
             selected_parents = self.select_parents(population, fitness_scores)
-            
-            # Perform crossover to create new offspring
             offspring = self.crossover(selected_parents)
-            
-            # Apply mutation to the offspring
             mutated_offspring = [self.mutate(individual, vertical) for individual in offspring]
-            
-            # Replace the old population with the new generation
             population = mutated_offspring
             
-        # Choose the best individual from the final population
         best_individual = max(population, key=lambda x: self.evaluate_individual(x, vertical))
-        
-        # Return the move corresponding to the best individual
-        print('Best individual:', best_individual[0], 'Fitness:', self.evaluate_individual(best_individual, vertical))
         return best_individual[0], self.evaluate_individual(best_individual, vertical)
 
     def initialize_population(self, population_size, vertical):
         print('DoRa.py -> initialize_population')
         initial_population = []
         for _ in range(population_size):
-            individual = [self.get_random_move(vertical) for _ in range(10)]  # Example: 10 moves per individual
+            individual = [self.get_random_move(vertical) for _ in range(10)]
             initial_population.append(individual)
         return initial_population
 
     def evaluate_individual(self, individual, vertical):
         print('DoRa.py -> evaluate_individual')
-        # Evaluate the fitness of an individual (solution)
         game_copy = self.copy()
         for move in individual:
             game_copy.perform_move(move[0], move[1], vertical)
-        # Example fitness function: difference between max and min legal moves
         max_moves = list(game_copy.legal_moves(vertical))
         min_moves = list(game_copy.legal_moves(not vertical))
         return len(max_moves) - len(min_moves)
 
     def select_parents(self, population, fitness_scores):
         print('DoRa.py -> select_parents')
-        # Tournament selection: randomly select individuals and choose the best one
         selected_parents = []
         for _ in range(len(population)):
             candidates = random.sample(list(enumerate(population)), 2)
@@ -241,7 +217,6 @@ class DoRaGame(object):
 
     def crossover(self, selected_parents):
         print('DoRa.py -> crossover')
-        # Single-point crossover: combine parents to create offspring
         offspring = []
         for parent1, parent2 in zip(selected_parents[::2], selected_parents[1::2]):
             crossover_point = random.randint(1, min(len(parent1[1]), len(parent2[1])) - 1)
@@ -252,15 +227,42 @@ class DoRaGame(object):
 
     def mutate(self, individual, vertical):
         print('DoRa.py -> mutate')
-        # Mutation: randomly change a move in the individual
         mutation_point = random.randint(0, len(individual) - 1)
         individual[mutation_point] = self.get_random_move(vertical)
         return individual
-
 
     def evaluate_board(self, state, vertical):
         print('DoRa.py -> evaluate_board')
         max_moves = list(state.legal_moves(vertical))
         min_moves = list(state.legal_moves(not vertical))
-
         return len(max_moves) - len(min_moves)
+
+    # Fuzzy Logic
+
+    def get_fuzzy_logic_move(self, vertical):
+        print("DoRa.py -> get_fuzzy_logic_move -----------------------------------------------------------------------------------")
+        legal_moves = list(self.legal_moves(vertical))
+        move_scores = []
+
+        for move in legal_moves:
+            simulated_game = self.copy()
+            simulated_game.perform_move(move[0], move[1], vertical)
+            move_scores.append(self.fuzzy_evaluate_board(simulated_game, vertical))
+
+        best_move = legal_moves[np.argmax(move_scores)]
+        return best_move
+
+    def fuzzy_evaluate_board(self, game, vertical):
+        print('DoRa.py -> fuzzy_evaluate_board')
+        max_moves = len(list(game.legal_moves(vertical)))
+        min_moves = len(list(game.legal_moves(not vertical)))
+
+        # Fuzzy logic to evaluate the board
+        score = 0
+
+        if max_moves > min_moves:
+            score += 0.7 * (max_moves - min_moves)
+        else:
+            score += 0.3 * (min_moves - max_moves)
+
+        return score
