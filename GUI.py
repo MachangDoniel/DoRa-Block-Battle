@@ -4,6 +4,14 @@ import DoRa
 import time
 
 
+# variable
+
+# alpha_beta_pruning
+limit = 1
+# genetic_algorithm
+population_size = 100
+generations = 100
+
 class Square(tk.Canvas):
     COLOR_EMPTY = "gray"
     COLOR_FILLED_R = "red"
@@ -85,7 +93,7 @@ class Board(tk.Frame):
             row = col = fitness_value = -1
             while not self.game.is_legal_move(row, col, self.vertical):
                 (row, col), fitness_value = \
-                    self.game.get_genetic_algorithm_move(self.vertical, 10, 10)
+                    self.game.get_genetic_algorithm_move(self.vertical, population_size = 10, generations = 10)
             self.perform_move(row, col)
     
     def perform_move_2(self, row, col):
@@ -308,15 +316,14 @@ class BoardPage(tk.Frame):
             if not self.board.game.game_over(self.board.vertical):
                 if(self.board.mode == "AI"):
                     (row, col), best_value, total_leaves = \
-                        self.board.game.get_alpha_beta_move(self.board.vertical, 1)
+                        self.board.game.get_alpha_beta_move(self.board.vertical, limit = 1)
                     self.board.perform_move(row, col)
                 elif(self.board.mode == "AI-2"):
                     row = col = fitness_value = -1
                     while not self.board.game.is_legal_move(row, col, self.board.vertical):
                         (row, col), fitness_value = \
-                        self.board.game.get_genetic_algorithm_move(self.board.vertical, 10, 10)
+                        self.board.game.get_genetic_algorithm_move(self.board.vertical, population_size = 10, generations = 10)
                     self.board.perform_move(row, col)
-            # time.sleep(1)
 
     def perform_alpha_beta_move(self):
         print("gui.py -> perform_alpha_beta_move -----------------------------------------------------------------------------------")
@@ -329,7 +336,7 @@ class BoardPage(tk.Frame):
         if not self.board.two_player:
             if not self.board.game.game_over(self.board.vertical):
                 (row, col), best_value, total_leaves = \
-                    self.board.game.get_alpha_beta_move(self.board.vertical, 1)
+                    self.board.game.get_alpha_beta_move(self.board.vertical, limit = 1)
                 self.board.perform_move(row, col)
         # time.sleep(1)
 
@@ -340,7 +347,7 @@ class BoardPage(tk.Frame):
             row = col = fitness_value = -1
             while not self.board.game.is_legal_move(row, col, self.board.vertical):
                 (row, col), fitness_value = \
-                self.board.game.get_genetic_algorithm_move(self.board.vertical, 10, 10)
+                self.board.game.get_genetic_algorithm_move(self.board.vertical, population_size = 10, generations = 10)
             self.board.perform_move(row, col)
 
         if not self.board.two_player:
@@ -348,7 +355,7 @@ class BoardPage(tk.Frame):
                 row = col = fitness_value = -1
                 while not self.board.game.is_legal_move(row, col, self.board.vertical):
                     (row, col), fitness_value = \
-                    self.board.game.get_genetic_algorithm_move(self.board.vertical, 10, 10)
+                    self.board.game.get_genetic_algorithm_move(self.board.vertical, population_size = 10, generations = 10)
                 self.board.perform_move(row, col)
         # time.sleep(1)
 
