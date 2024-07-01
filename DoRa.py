@@ -265,6 +265,7 @@ class DoRaGame(object):
         return selected_parents
 
 
+
     def roulette_wheel_selection(self, selection_probabilities):
         cumulative_sum = 0
         r = random.random()  # Random number between 0 and 1
