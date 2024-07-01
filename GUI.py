@@ -64,34 +64,26 @@ class Board(tk.Frame):
             self.game.perform_move(row, col, self.vertical)
             self.squares[row][col].set_state(True, self.vertical)
             if self.vertical:
-                self.squares[row+1][col].set_state(True, self.vertical)
+                self.squares[row + 1][col].set_state(True, self.vertical)
             else:
-                self.squares[row][col+1].set_state(True, self.vertical)
+                self.squares[row][col + 1].set_state(True, self.vertical)
             self.vertical = not self.vertical
             self.update_squares()
             self.master.update_status()
             self.moved = True
         else:
             self.moved = False
-    
+
     def perform_ai_move(self):
         if self.moved and not self.game.game_over(self.vertical):
             (row, col), best_value, total_leaves = \
                 self.game.get_alpha_beta_move(self.vertical, 1)
             self.perform_move(row, col)
 
-    def perform_ai2_move(self):
-        if self.moved and not self.game.game_over(self.vertical):
-            row = col = fitness_value = -1
-            while not self.game.is_legal_move(row, col, self.vertical):
-                (row, col), fitness_value = \
-                    self.game.get_genetic_algorithm_move(self.vertical, 10, 10)
-            self.perform_move(row, col)
-    
     def perform_move_2(self, row, col):
         print('gui.py -> perform_move_2', self.mode, self.two_player)
         self.perform_move(row, col)
-        
+
         if self.mode == "AI":
             if self.moved:
                 if not self.game.game_over(self.vertical):
@@ -101,10 +93,45 @@ class Board(tk.Frame):
             if self.moved:
                 if not self.game.game_over(self.vertical):
                     self.after(1000, self.perform_ai2_move)
-            
+
         else:
             self.perform_move(row, col)
 
+    def perform_ai2_move(self):
+        if self.moved and not self.game.game_over(self.vertical):
+            row = col = fitness_value = -1
+            while not self.game.is_legal_move(row, col, self.vertical):
+                (row, col), fitness_value = \
+                    self.game.get_genetic_algorithm_move(self.vertical, 10, 10)
+            self.perform_move(row, col)
+
+    def perform_move_3(self, row, col):
+        print('gui.py -> perform_move_3', self.mode, self.two_player)
+        self.perform_move(row, col)
+
+        if self.mode == "AI":
+            if self.moved:
+                if not self.game.game_over(self.vertical):
+                    self.after(1000, self.perform_ai_move)
+
+        elif self.mode == "AI-2":
+            if self.moved:
+                if not self.game.game_over(self.vertical):
+                    self.after(1000, self.perform_ai2_move)
+
+        elif self.mode == "AI-3":
+            if self.moved:
+                if not self.game.game_over(self.vertical):
+                    self.after(1000, self.perform_ai3_move)
+
+        else:
+            self.perform_move(row, col)
+
+    def perform_ai3_move(self):
+        if self.moved and not self.game.game_over(self.vertical):
+            (row, col), best_value, total_leaves = \
+                self.game.get_fuzzy_logic_move(self.vertical, 1)
+            self.perform_move(row, col)
 
     def update_squares(self):
         print('gui.py -> update_squares', self.mode)
@@ -277,6 +304,7 @@ class BoardPage(tk.Frame):
         self.board.update_squares()
         self.update_status()
 
+
     def auto_move(self):
         print("gui.py -> auto_move", self)
         self.reset_click()
@@ -291,12 +319,20 @@ class BoardPage(tk.Frame):
         self.board.mode = "AI-2"
         self.update_status()
 
+    def auto_move3(self):
+        print("gui.py -> auto_move3", self.board.mode)
+        self.reset_click()
+        self.board.two_player = False
+        self.board.mode = "AI-3"
+        self.update_status()
+
     def two_player_move(self):
         print("gui.py -> two_player_move", self.board.mode)
         self.reset_click()
         self.board.two_player = True
         self.board.mode = "Two Player"
         self.update_status()
+
 
     def perform_random_move(self):
         print("gui.py -> perform_random_move", self.board.mode)
@@ -351,6 +387,15 @@ class BoardPage(tk.Frame):
                     self.board.game.get_genetic_algorithm_move(self.board.vertical, 10, 10)
                 self.board.perform_move(row, col)
         # time.sleep(1)
+
+
+    def perform_fuzzy_logic_move(self):
+        print("gui.py-> perform_fuzzy_logic_move<<<>>>")
+        print(self.board.mode)
+        if self.board.moved and not self.board.game.game_over(self.board.vertical):
+            (row, col), best_value, total_leaves = \
+                self.board.game.get_fuzzy_logic_move(self.board.vertical)
+            self.board.perform_move(row, col)
 
 
 
