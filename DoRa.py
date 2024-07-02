@@ -1,7 +1,7 @@
 import random
 import copy
 import numpy as np
-import time
+import heapq
 
 
 def create_DoRa_game(rows, cols):
@@ -19,6 +19,10 @@ class DoRaGame(object):
         self._board = board
         self.num_rows = len(board)
         self.num_cols = len(board[0])
+
+    def __lt__(self, other):
+        print('Dora.py -> __It__')
+        return str(self._board) < str(other._board)
 
     def get_board(self):
         print('DoRa.py -> get_board')
@@ -188,22 +192,12 @@ class DoRaGame(object):
         population = self.initialize_population(population_size, vertical)
         
         for generation in range(generations):
-            # Evaluate fitness of each individual in the population
             fitness_scores = [self.evaluate_individual(individual, vertical) for individual in population]
-            
-            # Perform selection (tournament selection)
             selected_parents = self.select_parents(population, fitness_scores)
-            
-            # Perform crossover to create new offspring
             offspring = self.crossover(selected_parents)
-            
-            # Apply mutation to the offspring
             mutated_offspring = [self.mutate(individual, vertical) for individual in offspring]
-            
-            # Replace the old population with the new generation
             population = mutated_offspring
-            
-        # Choose the best individual from the final population
+        
         best_individual = max(population, key=lambda x: self.evaluate_individual(x, vertical))
         
         # Return the move corresponding to the best individual
@@ -267,6 +261,7 @@ class DoRaGame(object):
 
 
     def roulette_wheel_selection(self, selection_probabilities):
+        print('DoRa.py -> roulette_wheel_selection')
         cumulative_sum = 0
         r = random.random()  # Random number between 0 and 1
         for i, probability in enumerate(selection_probabilities):
@@ -300,3 +295,95 @@ class DoRaGame(object):
         min_moves = list(state.legal_moves(not vertical))
 
         return len(max_moves) - len(min_moves)
+
+
+    # Fuzzy Logic
+
+    def get_fuzzy_logic_move(self, vertical):
+
+        print("DoRa.py -> get_fuzzy_logic_move")
+
+        # Example fuzzy logic: prefer center positions, avoid edges
+        best_move = None
+        best_score = -float('inf')
+
+        for (row, col) in self.legal_moves(vertical):
+            score = 0
+
+            # Prefer center positions
+            if row in {0, self.num_rows - 1} or col in {0, self.num_cols - 1}:
+                score -= 10  # Penalty for edges
+            else:
+                score += 10  # Reward for center
+
+            if score > best_score:
+                best_score = score
+                best_move = (row, col)
+
+        return best_move, best_score
+    
+    # A* Algorithm
+    
+    def get_A_star_move(self, vertical):
+        print("DoRa.py -> get_A_star_move")
+        self.leaf_counter = 0
+        move, cost = self.A_star_search(self.copy(), vertical)
+        return move, cost
+
+    def A_star_search(self, state, vertical):
+        print('DoRa.py -> A_star_search')
+        frontier = []
+        heapq.heappush(frontier, (0, state))
+        came_from = {}
+        cost_so_far = {}
+        came_from[state] = None
+        cost_so_far[state] = 0
+
+        while not len(frontier) == 0:
+            current_priority, current = heapq.heappop(frontier)
+
+            if current.game_over(vertical):
+                break
+
+            for move, next_state in current.successors(vertical):
+                new_cost = cost_so_far[current] + 1  # assuming each move costs 1
+                if next_state not in cost_so_far or new_cost < cost_so_far[next_state]:
+                    cost_so_far[next_state] = new_cost
+                    priority = new_cost + self.heuristic(next_state, vertical)
+                    heapq.heappush(frontier, (priority, next_state))
+                    came_from[next_state] = (current, move)
+
+        return self.reconstruct_path(came_from, state, current, vertical)
+
+    def heuristic(self, state, vertical):
+        print('DoRa.py -> heuristic')
+        remaining_moves = sum(1 for _ in state.legal_moves(vertical))
+        return remaining_moves
+
+    def reconstruct_path(self, came_from, start, goal, vertical):
+        print('DoRa.py -> reconstruct_path')
+        current = goal
+        path = []
+        
+        while current is not None:
+            if current == start:
+                break
+            
+            if current not in came_from:
+                return (-1, -1), 0  # No valid path found
+            
+            path.append(current)
+            current, move = came_from[current]
+        
+        if current == start:
+            path.append(start)
+
+        if path:
+            first_move = next(iter(path[-1].legal_moves(vertical)), (-1, -1))
+            return first_move, len(path) - 1  # Subtract 1 to exclude the start state itself
+        
+        return (-1, -1), 0
+
+
+
+

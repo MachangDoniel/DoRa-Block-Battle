@@ -11,6 +11,7 @@ limit = 1
 # genetic_algorithm
 population_size = 100
 generations = 100
+delay = 100
 
 class Square(tk.Canvas):
     COLOR_EMPTY = "gray"
@@ -21,7 +22,7 @@ class Square(tk.Canvas):
         print('gui.py -> Square __init__')
         tk.Canvas.__init__(self, master, height=size, width=size,
                            background=Square.COLOR_EMPTY, highlightthickness=2,
-                           highlightbackground="black")
+                           highlightbackground="yellow")
         self.state = False
         self.vertical_color = True
 
@@ -61,10 +62,7 @@ class Board(tk.Frame):
                             lambda event, row=row, col=col: self.perform_move_2(row, col))
                 row_squares.append(square)
             self.squares.append(row_squares)
-    
-    def delay(self, n):
-        for i in range(n*1000000):
-            pass
+
 
     def perform_move(self, row, col):
         print('gui.py -> perform_move', self.mode)
@@ -83,17 +81,37 @@ class Board(tk.Frame):
             self.moved = False
     
     def perform_ai_move(self):
+        print('gui.py -> perform_ai_move')
         if self.moved and not self.game.game_over(self.vertical):
             (row, col), best_value, total_leaves = \
                 self.game.get_alpha_beta_move(self.vertical, 1)
             self.perform_move(row, col)
 
     def perform_ai2_move(self):
+        print('gui.py -> perform_ai2_move')
         if self.moved and not self.game.game_over(self.vertical):
             row = col = fitness_value = -1
             while not self.game.is_legal_move(row, col, self.vertical):
                 (row, col), fitness_value = \
                     self.game.get_genetic_algorithm_move(self.vertical, population_size = 10, generations = 10)
+            self.perform_move(row, col)
+
+    def perform_ai3_move(self):
+        print('gui.py -> perform_ai3_move')
+        if self.moved and not self.game.game_over(self.vertical):
+            row = col = best_value = -1
+            while not self.game.is_legal_move(row, col, self.vertical):
+                (row, col), best_value = \
+                    self.game.get_fuzzy_logic_move(self.vertical)
+            self.perform_move(row, col)
+
+    def perform_ai4_move(self):
+        print('gui.py -> perform_ai4_move')
+        if self.moved and not self.game.game_over(self.vertical):
+            row = col = best_value = -1
+            while not self.game.is_legal_move(row, col, self.vertical):
+                (row, col), best_value = \
+                    self.game.get_A_star_move(self.vertical)
             self.perform_move(row, col)
     
     def perform_move_2(self, row, col):
@@ -103,13 +121,23 @@ class Board(tk.Frame):
         if self.mode == "AI":
             if self.moved:
                 if not self.game.game_over(self.vertical):
-                    self.after(1000, self.perform_ai_move)
+                    self.after(delay, self.perform_ai_move)
 
         elif self.mode == "AI-2":
             if self.moved:
                 if not self.game.game_over(self.vertical):
-                    self.after(1000, self.perform_ai2_move)
-            
+                    self.after(delay, self.perform_ai2_move)
+
+        elif self.mode == "AI-3":
+            if self.moved:
+                if not self.game.game_over(self.vertical):
+                    self.after(delay, self.perform_ai3_move)
+
+        elif self.mode == "AI-4":
+            if self.moved:
+                if not self.game.game_over(self.vertical):
+                    self.after(delay, self.perform_ai4_move)
+
         else:
             self.perform_move(row, col)
 
@@ -158,14 +186,15 @@ class MainPage(tk.Frame):
         tk.Frame.__init__(self, parent)
         self.controller = controller
 
-        label = tk.Label(self, text="DoRa Game", font=("Arial", 24))
+        label = tk.Label(self, bg="#4caf50", fg="white", text="DoRa Game", font=("Arial", 24))
         label.pack(pady=20)
 
-        btn_start = tk.Button(self, text="Start", font=("Arial", 16),
+        btn_start = tk.Button(self, bg="#4caf50", fg="white", text="Start", font=("Arial", 16),
                               command=self.start_game)
-        btn_start.pack(pady=10)
+        btn_start.pack(pady=20)
 
     def start_game(self):
+        print('GUI.py -> start_game')
         self.controller.show_frame("TossPage")
 
 
@@ -177,14 +206,14 @@ class TossPage(tk.Frame):
         self.controller = controller
         self.mode = "AI"
 
-        self.label = tk.Label(self, text="", font=("Arial", 24))
+        self.label = tk.Label(self, fg="blue", text="", font=("Arial", 24))
         self.label.pack(pady=20)
 
-        self.btn_toss = tk.Button(self, text="Toss", font=("Arial", 16),
+        self.btn_toss = tk.Button(self, bg="#4caf50", fg="white", text="Toss", font=("Arial", 16),
                                   command=self.toss)
         self.btn_toss.pack(pady=10)
 
-        self.btn_next = tk.Button(self, text="Next", font=("Arial", 16),
+        self.btn_next = tk.Button(self, bg="#4caf50", fg="white", text="Next", font=("Arial", 16),
                                   command=self.go_to_board)
         self.btn_next.pack(pady=10)
         self.btn_next.pack_forget()  # Hide the Next button initially
@@ -214,7 +243,7 @@ class BoardPage(tk.Frame):
 
     def __init__(self, parent, controller):
         print('gui.py -> BoardPage __init__')
-        tk.Frame.__init__(self, parent)
+        tk.Frame.__init__(self , parent)
         self.controller = controller
         self.board = None
 
@@ -236,20 +265,23 @@ class BoardPage(tk.Frame):
 
         menu = tk.Frame(self)
 
-        self.status_label = tk.Label(menu, font=("Arial", 16))
+        self.status_label = tk.Label(menu, fg="red", font=("Arial", 16))
         self.status_label.pack(padx=1, pady=(1, 10))
         self.update_status()
 
-        tk.Label(menu, text="Press 'r' to perform a random move.").pack(padx=1, pady=1, anchor=tk.W)
-        tk.Label(menu, text="Press 'a' to perform a best move of alpha_beta pruning.").pack(padx=1, pady=1, anchor=tk.W)
-        tk.Label(menu, text="Press 'g' to perform a best move of genetic_algorithm.").pack(padx=1, pady=1, anchor=tk.W)
-        ## tk.Label(menu, text="Press 'f' to perform a best move of fuzzy_logic.").pack(padx=1, pady=1, anchor=tk.W)
-        ## tk.Label(menu, text="Press 's' to perform a best move of A_star.").pack(padx=1, pady=1, anchor=tk.W)
+        tk.Label(menu, fg="blue", text="Press 'r' to perform a random move.").pack(padx=1, pady=1, anchor=tk.W)
+        tk.Label(menu, fg="blue", text="Press 'a' to perform a best move of alpha_beta pruning.").pack(padx=1, pady=1, anchor=tk.W)
+        tk.Label(menu, fg="blue", text="Press 'g' to perform a best move of genetic_algorithm.").pack(padx=1, pady=1, anchor=tk.W)
+        tk.Label(menu, fg="blue", text="Press 'f' to perform a best move of fuzzy_logic.").pack(padx=1, pady=1, anchor=tk.W)
+        tk.Label(menu, fg="blue", text="Press 's' to perform a best move of A_star.").pack(padx=1, pady=1, anchor=tk.W)
         
-        tk.Button(menu, text="Two Player", command=self.two_player_move).pack(fill=tk.X, padx=1, pady=1)
-        tk.Button(menu, text="Play with AI",command=self.auto_move).pack(fill=tk.X, padx=1, pady=1)
-        tk.Button(menu, text="Play with AI-2",command=self.auto_move2).pack(fill=tk.X, padx=1, pady=1)
-        tk.Button(menu, text="Reset Game", command=self.reset_click).pack(fill=tk.X, padx=1, pady=1)
+
+        tk.Button(menu, bg="#4caf50", fg="white", text="Two Player", command=self.two_player_move).pack(fill=tk.X, padx=1, pady=1)
+        tk.Button(menu, bg="#4caf50", fg="white", text="Play with AI",command=self.auto_move).pack(fill=tk.X, padx=1, pady=1)
+        tk.Button(menu, bg="#4caf50", fg="white", text="Play with AI-2", command=self.auto_move2).pack(fill=tk.X, padx=1, pady=1)
+        tk.Button(menu, bg="#4caf50", fg="white", text="Play with AI-3", command=self.auto_move3).pack(fill=tk.X, padx=1, pady=1)
+        tk.Button(menu, bg="#4caf50", fg="white", text="Play with AI-4", command=self.auto_move4).pack(fill=tk.X, padx=1, pady=1)
+        tk.Button(menu, bg="#ff5050", fg="white", text="Reset Game", command=self.reset_click).pack(fill=tk.X, padx=1, pady=1)
 
         menu.pack(side=tk.RIGHT)
 
@@ -258,12 +290,10 @@ class BoardPage(tk.Frame):
         self.bind("r", lambda event: self.perform_random_move())
         self.bind("a", lambda event: self.perform_alpha_beta_move())
         self.bind("g", lambda event: self.perform_genetic_algorithm_move())
-        ## self.bind("f", lambda event: self.perform_fuzzy_logic_move())
-        ## self.bind("s", lambda event: self.perform_A_star_move())
+        self.bind("f", lambda event: self.perform_fuzzy_logic_move())
+        self.bind("s", lambda event: self.perform_A_star_move())
 
-    # def return_to_toss(self):
-    #     self.controller.show_frame("TossPage")
-    #     self.controller.frames["TossPage"].reset_toss()
+
 
     def reset_game(self):
         print('gui.py -> reset_game')
@@ -299,6 +329,20 @@ class BoardPage(tk.Frame):
         self.board.mode = "AI-2"
         self.update_status()
 
+    def auto_move3(self):
+        print("gui.py -> auto_move3", self.board.mode)
+        self.reset_click()
+        self.board.two_player = False
+        self.board.mode = "AI-3"
+        self.update_status()
+
+    def auto_move4(self):
+        print("gui.py -> auto_move3", self.board.mode)
+        self.reset_click()
+        self.board.two_player = False
+        self.board.mode = "AI-4"
+        self.update_status()
+
     def two_player_move(self):
         print("gui.py -> two_player_move", self.board.mode)
         self.reset_click()
@@ -324,6 +368,18 @@ class BoardPage(tk.Frame):
                         (row, col), fitness_value = \
                         self.board.game.get_genetic_algorithm_move(self.board.vertical, population_size = 10, generations = 10)
                     self.board.perform_move(row, col)
+                elif(self.board.mode == "AI-3"):
+                    row = col = best_value = -1
+                    while not self.board.game.is_legal_move(row, col, self.board.vertical):
+                        (row, col), best_value = \
+                            self.board.game.get_fuzzy_logic_move(self.board.vertical)
+                    self.board.perform_move(row, col)
+                elif(self.board.mode == "AI-4"):
+                    row = col = best_value = -1
+                    while not self.board.game.is_legal_move(row, col, self.board.vertical):
+                        (row, col), best_value = \
+                            self.board.game.get_A_star_move(self.board.vertical)
+                    self.board.perform_move(row, col)
 
     def perform_alpha_beta_move(self):
         print("gui.py -> perform_alpha_beta_move -----------------------------------------------------------------------------------")
@@ -338,7 +394,7 @@ class BoardPage(tk.Frame):
                 (row, col), best_value, total_leaves = \
                     self.board.game.get_alpha_beta_move(self.board.vertical, limit = 1)
                 self.board.perform_move(row, col)
-        # time.sleep(1)
+
 
     def perform_genetic_algorithm_move(self):
         print("gui.py -> perform_genetic_algorithm_move -----------------------------------------------------------------------------------")
@@ -357,8 +413,41 @@ class BoardPage(tk.Frame):
                     (row, col), fitness_value = \
                     self.board.game.get_genetic_algorithm_move(self.board.vertical, population_size = 10, generations = 10)
                 self.board.perform_move(row, col)
-        # time.sleep(1)
 
+    def perform_fuzzy_logic_move(self):
+        print("gui.py-> perform_fuzzy_logic_move -----------------------------------------------------------------------------------")
+        print(self.board.mode)
+        if not self.board.game.game_over(self.board.vertical):
+            row = col = best_value = -1
+            while not self.board.game.is_legal_move(row, col, self.board.vertical):
+                (row, col), best_value = \
+                    self.board.game.get_fuzzy_logic_move(self.board.vertical)
+            self.board.perform_move(row, col)
+
+        if not self.board.two_player:
+            if not self.board.game.game_over(self.board.vertical):
+                row = col = best_value = -1
+                while not self.board.game.is_legal_move(row, col, self.board.vertical):
+                    (row, col), best_value = \
+                        self.board.game.get_fuzzy_logic_move(self.board.vertical)
+                self.board.perform_move(row, col)
+
+
+    def perform_A_star_move(self):
+        print("gui.py -> perform_A_star_move -----------------------------------------------------------------------------------")
+        print(self.board.mode)
+        if not self.board.game.game_over(self.board.vertical):
+            row = col = best_value = -1
+            while not self.board.game.is_legal_move(row, col, self.board.vertical):
+                (row, col), best_value = self.board.game.get_A_star_move(self.board.vertical)
+            self.board.perform_move(row, col)
+
+        if not self.board.two_player:
+            if not self.board.game.game_over(self.board.vertical):
+                row = col = best_value = -1
+                while not self.board.game.is_legal_move(row, col, self.board.vertical):
+                    (row, col), best_value = self.board.game.get_A_star_move(self.board.vertical)
+                self.board.perform_move(row, col)
 
 
 if __name__ == "__main__":
