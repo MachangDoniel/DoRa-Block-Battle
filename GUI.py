@@ -22,7 +22,7 @@ class Square(tk.Canvas):
         print('gui.py -> Square __init__')
         tk.Canvas.__init__(self, master, height=size, width=size,
                            background=Square.COLOR_EMPTY, highlightthickness=2,
-                           highlightbackground="black")
+                           highlightbackground="red")
         self.state = False
         self.vertical_color = True
 
@@ -59,7 +59,7 @@ class Board(tk.Frame):
                 square = Square(self)
                 square.grid(row=row, column=col, padx=1, pady=1)
                 square.bind("<Button-1>",
-                            lambda event, row=row, col=col: self.perform_move_2(row, col))
+                            lambda event, row=rows, col=cols: self.perform_move_2(row, col))
                 row_squares.append(square)
             self.squares.append(row_squares)
 
@@ -169,10 +169,10 @@ class MainPage(tk.Frame):
         tk.Frame.__init__(self, parent)
         self.controller = controller
 
-        label = tk.Label(self, text="DoRa Game", font=("Arial", 24))
+        label = tk.Label(self, fg="blue",text="DoRa Game", font=("Arial", 24))
         label.pack(pady=20)
 
-        btn_start = tk.Button(self, text="Start", font=("Arial", 16),
+        btn_start = tk.Button(self, bg="#4caf50", fg="white",text="Start", font=("Arial", 16),
                               command=self.start_game)
         btn_start.pack(pady=10)
 
@@ -188,16 +188,16 @@ class TossPage(tk.Frame):
         self.controller = controller
         self.mode = "AI"
 
-        self.label = tk.Label(self, text="", font=("Arial", 24))
-        self.label.pack(pady=20)
+        self.label = tk.Label(self,fg="blue", text="", font=("Arial", 24))
+        self.label.pack(pady=50)
 
-        self.btn_toss = tk.Button(self, text="Toss", font=("Arial", 16),
+        self.btn_toss = tk.Button(self, bg="#4caf50", fg="white",text="Toss", font=("Arial", 16),
                                   command=self.toss)
-        self.btn_toss.pack(pady=10)
+        self.btn_toss.pack(pady=50)
 
-        self.btn_next = tk.Button(self, text="Next", font=("Arial", 16),
+        self.btn_next = tk.Button(self,bg="#4caf50", fg="white", text="Next", font=("Arial", 16),
                                   command=self.go_to_board)
-        self.btn_next.pack(pady=10)
+        self.btn_next.pack(pady=50)
         self.btn_next.pack_forget()  # Hide the Next button initially
 
     def toss(self):
@@ -247,21 +247,21 @@ class BoardPage(tk.Frame):
 
         menu = tk.Frame(self)
 
-        self.status_label = tk.Label(menu, font=("Arial", 16))
+        self.status_label = tk.Label(menu, fg="red",font=("Arial", 16))
         self.status_label.pack(padx=1, pady=(1, 10))
         self.update_status()
 
-        tk.Label(menu, text="Press 'r' to perform a random move.").pack(padx=1, pady=1, anchor=tk.W)
-        tk.Label(menu, text="Press 'a' to perform a best move of alpha_beta pruning.").pack(padx=1, pady=1, anchor=tk.W)
-        tk.Label(menu, text="Press 'g' to perform a best move of genetic_algorithm.").pack(padx=1, pady=1, anchor=tk.W)
-        tk.Label(menu, text="Press 'f' to perform a best move of fuzzy_logic.").pack(padx=1, pady=1, anchor=tk.W)
+        tk.Label(menu, fg="blue",text="Press 'r' to perform a random move.").pack(padx=1, pady=1, anchor=tk.W)
+        tk.Label(menu, fg="blue", text="Press 'a' to perform a best move of alpha_beta pruning.").pack(padx=1, pady=1, anchor=tk.W)
+        tk.Label(menu, fg="blue",text="Press 'g' to perform a best move of genetic_algorithm.").pack(padx=1, pady=1, anchor=tk.W)
+        tk.Label(menu,fg="blue", text="Press 'f' to perform a best move of fuzzy_logic.").pack(padx=1, pady=1, anchor=tk.W)
         ## tk.Label(menu, text="Press 's' to perform a best move of A_star.").pack(padx=1, pady=1, anchor=tk.W)
         
-        tk.Button(menu, text="Two Player", command=self.two_player_move).pack(fill=tk.X, padx=1, pady=1)
-        tk.Button(menu, text="Play with AI",command=self.auto_move).pack(fill=tk.X, padx=1, pady=1)
-        tk.Button(menu, text="Play with AI-2", command=self.auto_move2).pack(fill=tk.X, padx=1, pady=1)
-        tk.Button(menu, text="Play with AI-3", command=self.auto_move3).pack(fill=tk.X, padx=1, pady=1)
-        tk.Button(menu, text="Reset Game", command=self.reset_click).pack(fill=tk.X, padx=1, pady=1)
+        tk.Button(menu, bg="#4caf50", fg="white", text="Two Player", command=self.two_player_move).pack(fill=tk.X, padx=1, pady=1)
+        tk.Button(menu,bg="#4caf50", fg="white", text="Play with AI",command=self.auto_move).pack(fill=tk.X, padx=1, pady=1)
+        tk.Button(menu, bg="#4caf50", fg="white",text="Play with AI-2", command=self.auto_move2).pack(fill=tk.X, padx=1, pady=1)
+        tk.Button(menu, bg="#4caf50", fg="white",text="Play with AI-3", command=self.auto_move3).pack(fill=tk.X, padx=1, pady=1)
+        tk.Button(menu, bg="#4caf50", fg="white",text="Reset Game", command=self.reset_click).pack(fill=tk.X, padx=1, pady=1)
 
         menu.pack(side=tk.RIGHT)
 
