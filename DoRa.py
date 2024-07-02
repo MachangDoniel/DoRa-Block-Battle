@@ -36,8 +36,10 @@ class DoRaGame(object):
         board = [row.copy() for _ in range(self.num_rows)]
         self._board = board.copy()
 
-    def is_legal_move(self, row, col, vertical):
+    def is_legal_move(self, row, col, vertical = -1):
         # print('DoRa.py -> is_legal_move')
+        if vertical == -1:
+            return True
         if vertical:
             DoRa = ((row, col), (row+1, col))
         else:
@@ -183,7 +185,6 @@ class DoRaGame(object):
     def get_genetic_algorithm_move(self, vertical, population_size, generations):
 
         print("DoRa.py -> get_genetic_algorithm_move -----------------------------------------------------------------------------------")
-        # time.sleep(1)
         population = self.initialize_population(population_size, vertical)
         
         for generation in range(generations):
@@ -215,7 +216,10 @@ class DoRaGame(object):
         for _ in range(population_size):
             individual = [self.get_random_move(vertical) for _ in range(10)]  # Example: 10 moves per individual
             initial_population.append(individual)
+        
+        # print('Initial population:', initial_population)
         return initial_population
+    
 
     def evaluate_individual(self, individual, vertical):
         print('DoRa.py -> evaluate_individual')
@@ -228,16 +232,48 @@ class DoRaGame(object):
         min_moves = list(game_copy.legal_moves(not vertical))
         return len(max_moves) - len(min_moves)
 
+    # def select_parents(self, population, fitness_scores):
+    #     print('DoRa.py -> select_parents')
+    #     # Tournament selection: randomly select individuals and choose the best one
+    #     selected_parents = []
+    #     for _ in range(len(population)):
+    #         candidates = random.sample(list(enumerate(population)), 2)
+    #         candidate1, candidate2 = candidates[0], candidates[1]
+    #         parent = candidate1 if fitness_scores[candidate1[0]] > fitness_scores[candidate2[0]] else candidate2
+    #         selected_parents.append(parent)
+    #     return selected_parents
+
     def select_parents(self, population, fitness_scores):
         print('DoRa.py -> select_parents')
-        # Tournament selection: randomly select individuals and choose the best one
+        
+        # Calculate the total fitness of the population
+        total_fitness = sum(fitness_scores)
+        
+        if total_fitness == 0:
+            # Avoid division by zero by assigning equal probability
+            selection_probabilities = [1 / len(fitness_scores) for _ in fitness_scores]
+        else:
+            selection_probabilities = [fitness / total_fitness for fitness in fitness_scores]
+        
+        # Roulette wheel selection
         selected_parents = []
         for _ in range(len(population)):
-            candidates = random.sample(list(enumerate(population)), 2)
-            candidate1, candidate2 = candidates[0], candidates[1]
-            parent = candidate1 if fitness_scores[candidate1[0]] > fitness_scores[candidate2[0]] else candidate2
-            selected_parents.append(parent)
+            # Select a parent based on selection probabilities
+            parent_index = self.roulette_wheel_selection(selection_probabilities)
+            selected_parents.append((parent_index, population[parent_index]))
+            
         return selected_parents
+
+
+
+    def roulette_wheel_selection(self, selection_probabilities):
+        cumulative_sum = 0
+        r = random.random()  # Random number between 0 and 1
+        for i, probability in enumerate(selection_probabilities):
+            cumulative_sum += probability
+            if cumulative_sum > r:
+                return i
+        return len(selection_probabilities) - 1  # In case of rounding errors
 
     def crossover(self, selected_parents):
         print('DoRa.py -> crossover')
@@ -264,3 +300,27 @@ class DoRaGame(object):
         min_moves = list(state.legal_moves(not vertical))
 
         return len(max_moves) - len(min_moves)
+
+
+    # Fuzzy Logic
+    def get_fuzzy_logic_move(self, vertical):
+        print("DoRa.py -> get_fuzzy_logic_move")
+
+        # Example fuzzy logic: prefer center positions, avoid edges
+        best_move = None
+        best_score = -float('inf')
+
+        for (row, col) in self.legal_moves(vertical):
+            score = 0
+
+            # Prefer center positions
+            if row in {0, self.num_rows - 1} or col in {0, self.num_cols - 1}:
+                score -= 10  # Penalty for edges
+            else:
+                score += 10  # Reward for center
+
+            if score > best_score:
+                best_score = score
+                best_move = (row, col)
+
+        return best_move, best_score
