@@ -58,10 +58,11 @@ class Board(tk.Frame):
             for col in range(cols):
                 square = Square(self)
                 square.grid(row=row, column=col, padx=1, pady=1)
-                square.bind("<Button-1>",
-                            lambda event, row=row, col=col: self.perform_move_2(row, col))
+                square.bind("<Button-1>", lambda event, row=row, col=col: self.perform_move_AI(row, col))
                 row_squares.append(square)
             self.squares.append(row_squares)
+
+
 
 
     def perform_move(self, row, col):
@@ -114,8 +115,8 @@ class Board(tk.Frame):
                     self.game.get_A_star_move(self.vertical)
             self.perform_move(row, col)
     
-    def perform_move_2(self, row, col):
-        print('gui.py -> perform_move_2', self.mode, self.two_player)
+    def perform_move_AI(self, row, col):
+        print('gui.py -> perform_move_AI', self.mode, self.two_player)
         self.perform_move(row, col)
         
         if self.mode == "AI":
@@ -211,11 +212,11 @@ class TossPage(tk.Frame):
 
         self.btn_toss = tk.Button(self, bg="#4caf50", fg="white", text="Toss", font=("Arial", 16),
                                   command=self.toss)
-        self.btn_toss.pack(pady=10)
+        self.btn_toss.pack(pady=50)
 
         self.btn_next = tk.Button(self, bg="#4caf50", fg="white", text="Next", font=("Arial", 16),
                                   command=self.go_to_board)
-        self.btn_next.pack(pady=10)
+        self.btn_next.pack(pady=50)
         self.btn_next.pack_forget()  # Hide the Next button initially
 
     def toss(self):
