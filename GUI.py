@@ -1,6 +1,7 @@
 import tkinter as tk
 import random
 import DoRa
+from PIL import Image, ImageTk
 import time
 
 
@@ -12,6 +13,15 @@ limit = 1
 population_size = 100
 generations = 100
 delay = 100
+
+from tkinter import PhotoImage
+
+class Application(tk.Tk):
+    def __init__(self):
+        super().__init__()
+        self.background_image = PhotoImage(file="images/background.jpg")
+        # Other initialization code...
+
 
 class Square(tk.Canvas):
     COLOR_EMPTY = "gray"
@@ -156,11 +166,14 @@ class Board(tk.Frame):
 
 
 class DoRaGUI(tk.Tk):
-
     def __init__(self):
         print('gui.py -> DoRaGUI __init__')
         tk.Tk.__init__(self)
-        self.title("DoRa Game")
+        self.title("DoRa Block Battle")
+
+        # Set minimum size for the application window
+        self.geometry('800x600')  # Set initial size (you can adjust these dimensions)
+        self.minsize(800, 600)    # Set minimum size for the window
 
         self.container = tk.Frame(self)
         self.container.pack(side="top", fill="both", expand=True)
@@ -174,25 +187,38 @@ class DoRaGUI(tk.Tk):
 
         self.show_frame("MainPage")
 
+
     def show_frame(self, page_name):
         print('gui.py -> show_frame')
         frame = self.frames[page_name]
         frame.tkraise()
 
 
-class MainPage(tk.Frame):
 
+class MainPage(tk.Frame):
     def __init__(self, parent, controller):
         print('gui.py -> MainPage __init__')
         tk.Frame.__init__(self, parent)
         self.controller = controller
 
-        label = tk.Label(self, bg="#4caf50", fg="white", text="DoRa Game", font=("Arial", 24))
-        label.pack(pady=20)
+        # Load and resize the background image
+        original_image = Image.open("images/bg.jpg")
+        # resized_image = original_image.resize((800, 600), Image.ANTIALIAS)
+        self.background_image = ImageTk.PhotoImage(original_image)
 
-        btn_start = tk.Button(self, bg="#4caf50", fg="white", text="Start", font=("Arial", 16),
-                              command=self.start_game)
-        btn_start.pack(pady=20)
+        # Create a canvas to hold the background image
+        self.canvas = tk.Canvas(self, width=800, height=600)
+        self.canvas.pack(fill="both", expand=True)
+
+        # Add the background image to the canvas
+        self.canvas.create_image(0, 0, image=self.background_image, anchor="nw")
+
+        # Create the Start button directly on the canvas
+        btn_start = tk.Button(self.canvas, bg="green", fg="white", text="Start", font=("Arial", 16), command=self.start_game)
+        self.canvas.create_window(400, 300, window=btn_start)  # Place the button on the canvas
+
+        self.pack_propagate(False)  # Prevent frame from resizing to fit its content
+        self.configure(width=800, height=600)  # Set the size of the frame
 
     def start_game(self):
         print('GUI.py -> start_game')
@@ -200,24 +226,39 @@ class MainPage(tk.Frame):
 
 
 class TossPage(tk.Frame):
-
     def __init__(self, parent, controller):
         print('gui.py -> TossPage __init__')
         tk.Frame.__init__(self, parent)
         self.controller = controller
-        self.mode = "AI"
 
-        self.label = tk.Label(self, fg="blue", text="", font=("Arial", 24))
-        self.label.pack(pady=20)
+        # Load and resize the background image
+        original_image = Image.open("images/bg.jpg")
+        # resized_image = original_image.resize((800, 600), Image.ANTIALIAS)
+        self.background_image = ImageTk.PhotoImage(original_image)
 
-        self.btn_toss = tk.Button(self, bg="#4caf50", fg="white", text="Toss", font=("Arial", 16),
+        # Create a canvas to hold the background image
+        self.canvas = tk.Canvas(self, width=800, height=600)
+        self.canvas.pack(fill="both", expand=True)
+
+        # Add the background image to the canvas
+        self.canvas.create_image(0, 0, image=self.background_image, anchor="nw")
+
+        # Create the label and buttons directly on the canvas
+        self.label = tk.Label(self.canvas, fg="orange", bg="white", text="", font=("Arial", 24))
+        self.canvas.create_window(400, 100, window=self.label)  # Adjust position as needed
+
+        self.btn_toss = tk.Button(self.canvas, bg="green", fg="white", text="Toss", font=("Arial", 16),
                                   command=self.toss)
-        self.btn_toss.pack(pady=50)
+        self.canvas.create_window(400, 200, window=self.btn_toss)  # Adjust position as needed
 
-        self.btn_next = tk.Button(self, bg="#4caf50", fg="white", text="Next", font=("Arial", 16),
+        self.btn_next = tk.Button(self.canvas, bg="green", fg="white", text="Next", font=("Arial", 16),
                                   command=self.go_to_board)
-        self.btn_next.pack(pady=50)
-        self.btn_next.pack_forget()  # Hide the Next button initially
+        self.btn_next_window = self.canvas.create_window(400, 300, window=self.btn_next)  # Adjust position as needed
+        self.canvas.itemconfigure(self.btn_next_window, state='hidden')  # Hide the Next button initially
+
+        self.mode = "AI"  # Default mode
+        self.pack_propagate(False)  # Prevent frame from resizing to fit its content
+        self.configure(width=800, height=600)  # Set the size of the frame
 
     def toss(self):
         print('gui.py -> toss')
@@ -232,7 +273,7 @@ class TossPage(tk.Frame):
             result_text = "Horizontal"
 
         self.label.config(text="Toss Result: " + result_text)
-        self.btn_next.pack(pady=10)  # Show the Next button after the toss
+        self.canvas.itemconfigure(self.btn_next_window, state='normal')  # Show the Next button after the toss
 
     def go_to_board(self):
         print('gui.py -> go_to_board')
@@ -241,20 +282,24 @@ class TossPage(tk.Frame):
 
 
 class BoardPage(tk.Frame):
-
     def __init__(self, parent, controller):
         print('gui.py -> BoardPage __init__')
-        tk.Frame.__init__(self , parent)
+        tk.Frame.__init__(self, parent)
         self.controller = controller
         self.board = None
+
+        # Use grid layout for the frame
+        self.grid_rowconfigure(0, weight=1)
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_columnconfigure(1, weight=0)
 
     def set_up(self, mode, vertical):
         print('gui.py -> set_up - Mode:', mode)
         if self.board is not None:
             self.board.destroy()
 
-        board_row = 6
-        board_col = 6
+        board_row = 7
+        board_col = 7
 
         game = DoRa.create_DoRa_game(board_row, board_col)
         self.board = Board(self, game, board_col, board_col)
@@ -262,9 +307,10 @@ class BoardPage(tk.Frame):
         self.board.mode = mode
         self.board.vertical = vertical
         self.board.toss = True
-        self.board.pack(side=tk.LEFT, padx=1, pady=1)
+        self.board.grid(row=0, column=0, sticky="nsew")
 
         menu = tk.Frame(self)
+        menu.grid(row=0, column=1, sticky="ns")
 
         self.status_label = tk.Label(menu, fg="red", font=("Arial", 16))
         self.status_label.pack(padx=1, pady=(1, 10))
@@ -275,16 +321,15 @@ class BoardPage(tk.Frame):
         tk.Label(menu, fg="blue", text="Press 'g' to perform a best move of genetic_algorithm.").pack(padx=1, pady=1, anchor=tk.W)
         tk.Label(menu, fg="blue", text="Press 'f' to perform a best move of fuzzy_logic.").pack(padx=1, pady=1, anchor=tk.W)
         tk.Label(menu, fg="blue", text="Press 's' to perform a best move of A_star.").pack(padx=1, pady=1, anchor=tk.W)
-        
 
         tk.Button(menu, bg="#4caf50", fg="white", text="Two Player", command=self.two_player_move).pack(fill=tk.X, padx=1, pady=1)
-        tk.Button(menu, bg="#4caf50", fg="white", text="Play with AI",command=self.auto_move).pack(fill=tk.X, padx=1, pady=1)
+        tk.Button(menu, bg="#4caf50", fg="white", text="Play with AI", command=self.auto_move).pack(fill=tk.X, padx=1, pady=1)
         tk.Button(menu, bg="#4caf50", fg="white", text="Play with AI-2", command=self.auto_move2).pack(fill=tk.X, padx=1, pady=1)
         tk.Button(menu, bg="#4caf50", fg="white", text="Play with AI-3", command=self.auto_move3).pack(fill=tk.X, padx=1, pady=1)
         tk.Button(menu, bg="#4caf50", fg="white", text="Play with AI-4", command=self.auto_move4).pack(fill=tk.X, padx=1, pady=1)
         tk.Button(menu, bg="#ff5050", fg="white", text="Reset Game", command=self.reset_click).pack(fill=tk.X, padx=1, pady=1)
 
-        menu.pack(side=tk.RIGHT)
+        menu.grid(row=0, column=1, sticky="ns")
 
         self.focus_set()
 
@@ -293,13 +338,6 @@ class BoardPage(tk.Frame):
         self.bind("g", lambda event: self.perform_genetic_algorithm_move())
         self.bind("f", lambda event: self.perform_fuzzy_logic_move())
         self.bind("s", lambda event: self.perform_A_star_move())
-
-
-
-    def reset_game(self):
-        print('gui.py -> reset_game')
-        # Reset game logic here if needed
-        pass
 
     def update_status(self):
         print('gui.py -> update_status', self.board.mode)
@@ -414,6 +452,8 @@ class BoardPage(tk.Frame):
                     (row, col), fitness_value = \
                     self.board.game.get_genetic_algorithm_move(self.board.vertical, population_size = 10, generations = 10)
                 self.board.perform_move(row, col)
+
+       
 
     def perform_fuzzy_logic_move(self):
         print("gui.py-> perform_fuzzy_logic_move -----------------------------------------------------------------------------------")
