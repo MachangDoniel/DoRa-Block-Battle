@@ -388,10 +388,10 @@ class BoardPage(tk.Frame):
         tk.Label(menu, fg="blue", text="Press 's' to perform a best move of A_star.").pack(padx=1, pady=1, anchor=tk.W)
 
         tk.Button(menu, bg="#4caf50", fg="white", text="Two Player", command=self.two_player_move).pack(fill=tk.X, padx=1, pady=1)
-        tk.Button(menu, bg="#4caf50", fg="white", text="Play with AI", command=self.auto_move).pack(fill=tk.X, padx=1, pady=1)
-        tk.Button(menu, bg="#4caf50", fg="white", text="Play with AI-2", command=self.auto_move2).pack(fill=tk.X, padx=1, pady=1)
-        tk.Button(menu, bg="#4caf50", fg="white", text="Play with AI-3", command=self.auto_move3).pack(fill=tk.X, padx=1, pady=1)
-        tk.Button(menu, bg="#4caf50", fg="white", text="Play with AI-4", command=self.auto_move4).pack(fill=tk.X, padx=1, pady=1)
+        tk.Button(menu, bg="#4caf50", fg="white", text="Play with Alpha-Beta AI", command=self.auto_move).pack(fill=tk.X, padx=1, pady=1)
+        tk.Button(menu, bg="#4caf50", fg="white", text="Play with Genetic AI", command=self.auto_move2).pack(fill=tk.X, padx=1, pady=1)
+        tk.Button(menu, bg="#4caf50", fg="white", text="Play with Fuzzy AI", command=self.auto_move3).pack(fill=tk.X, padx=1, pady=1)
+        tk.Button(menu, bg="#4caf50", fg="white", text="Play with A* AI", command=self.auto_move4).pack(fill=tk.X, padx=1, pady=1)
         tk.Button(menu, bg="#ff5050", fg="white", text="Reset Game", command=self.reset_click).pack(fill=tk.X, padx=1, pady=1)
         
         # Add the return button
