@@ -146,24 +146,29 @@ class DoRaGUI(tk.Tk):
         self.container.pack(side="top", fill="both", expand=True)
 
         self.frames = {}
-        for F in (MainPage, TossPage, BoardPage, SettingsPage):
+        for F in (MainPage, TossPage, BoardPage, GameBoardSizePage, InstructionsPage):
             page_name = F.__name__
             frame = F(parent=self.container, controller=self)
             self.frames[page_name] = frame
             frame.grid(row=0, column=0, sticky="nsew")
 
-        # Ensure the SettingsPage is initialized correctly
-        self.after(100, lambda: self.show_frame("MainPage"))
+        # Ensure the MainPage is initialized correctly
+        self.show_frame("MainPage")
 
     def show_frame(self, page_name):
         print('gui.py -> show_frame', page_name)
         frame = self.frames[page_name]
         frame.tkraise()
 
+    def get_board_size(self):
+        return self.board_size
+
+    def set_board_size(self, size):
+        self.board_size = size
 
 
 
-class SettingsPage(tk.Frame):
+class InstructionsPage(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
         self.controller = controller
@@ -175,7 +180,54 @@ class SettingsPage(tk.Frame):
         self.canvas.pack(fill="both", expand=True)
         self.canvas.create_image(0, 0, image=self.background_image, anchor="nw")
 
-        self.size_var = tk.IntVar(value=self.controller.board_size)  # Default size from controller
+        # Instructions text
+        instructions_text = (
+            "Welcome to DoRa Block Battle!\n\n"
+            "Instructions:\n"
+            "1. Select the board size from the Customize game Board page.\n"
+            "2. Start the game and toss to decide who goes first.\n"
+            "3. If playing with AI, choose the AI mode from the Board page.\n"
+            "4. In Two Player mode, take turns to make moves.\n"
+            "5. The game ends when a player achieves the winning condition.\n"
+            "6. Use the buttons to perform moves or reset the game."
+            "\n\n\n"
+            "Tip and Tricks:\n"
+            "1. Press 'r' to perform a random move.\n"
+            "2. Press 'a' to perform an alpha-beta move.\n"
+            "3. Press 'g' to perform a genetic algorithm move.\n"
+            "4. Press 'f' to perform a fuzzy logic move.\n"
+            "5. Press 's' to perform an A* move."
+                    
+                            )
+
+        tk.Label(self.canvas, text=instructions_text, font=("Arial", 16), bg="white", justify="left", padx=20, pady=20).pack(pady=20)
+
+        # Add a Return button
+        btn_return = tk.Button(self.canvas, bg="green", fg="white", text="Return", font=("Arial", 16), command=self.return_to_GameBoardSize)
+        btn_return.pack(pady=10)
+
+
+        self.pack_propagate(False)
+        self.configure(width=800, height=600)
+
+    def return_to_GameBoardSize(self):
+        self.controller.show_frame("MainPage")
+
+
+
+class GameBoardSizePage(tk.Frame):
+    def __init__(self, parent, controller):
+        tk.Frame.__init__(self, parent)
+        self.controller = controller
+
+        original_image = Image.open("images/bg.jpg")
+        self.background_image = ImageTk.PhotoImage(original_image)
+
+        self.canvas = tk.Canvas(self, width=800, height=600)
+        self.canvas.pack(fill="both", expand=True)
+        self.canvas.create_image(0, 0, image=self.background_image, anchor="nw")
+
+        self.size_var = tk.IntVar(value=self.controller.get_board_size())  # Default size from controller
 
         tk.Label(self.canvas, text="Select Board Size (n x n):", font=("Arial", 24)).pack(pady=20)
         tk.Radiobutton(self.canvas, text="5 x 5", variable=self.size_var, value=5, font=("Arial", 16)).pack()
@@ -185,15 +237,16 @@ class SettingsPage(tk.Frame):
         tk.Radiobutton(self.canvas, text="9 x 9", variable=self.size_var, value=9, font=("Arial", 16)).pack()
         tk.Radiobutton(self.canvas, text="10 x 10", variable=self.size_var, value=10, font=("Arial", 16)).pack()
 
-        btn_apply = tk.Button(self.canvas, text="Apply", font=("Arial", 16), command=self.apply_settings)
+
+        btn_apply = tk.Button(self.canvas, bg="green", fg="white", text="Apply", font=("Arial", 16), command=self.apply_GameBoardSize)
         btn_apply.pack(pady=20)
 
         self.pack_propagate(False)
         self.configure(width=800, height=600)
 
-    def apply_settings(self):
+    def apply_GameBoardSize(self):
         size = self.size_var.get()
-        self.controller.board_size = size  # Update the board size in the controller
+        self.controller.set_board_size(size)  # Update the board size in the controller
         tk.messagebox.showinfo("Board Size", f"Selected board size: {size} x {size}")
         self.controller.show_frame("MainPage")
 
@@ -201,9 +254,10 @@ class SettingsPage(tk.Frame):
 
 
 
+
+
 class MainPage(tk.Frame):
     def __init__(self, parent, controller):
-        print('gui.py -> MainPage __init__')
         tk.Frame.__init__(self, parent)
         self.controller = controller
 
@@ -217,19 +271,24 @@ class MainPage(tk.Frame):
         btn_start = tk.Button(self.canvas, bg="green", fg="white", text="Start", font=("Arial", 16), command=self.start_game)
         self.canvas.create_window(400, 250, window=btn_start)
 
-        btn_settings = tk.Button(self.canvas, bg="blue", fg="white", text="Settings", font=("Arial", 16), command=self.show_settings)
-        self.canvas.create_window(400, 300, window=btn_settings)  # Adjust position as needed
+        btn_GameBoardSize = tk.Button(self.canvas, bg="blue", fg="white", text="Customize", font=("Arial", 16), command=self.show_GameBoardSize)
+        self.canvas.create_window(400, 300, window=btn_GameBoardSize)
+
+        btn_instructions = tk.Button(self.canvas, bg="purple", fg="white", text="Instructions", font=("Arial", 16), command=self.show_instructions)
+        self.canvas.create_window(400, 350, window=btn_instructions)  # Positioned below the Customize game Board button
 
         self.pack_propagate(False)
         self.configure(width=800, height=600)
 
     def start_game(self):
-        print('gui.py -> start_game')
         self.controller.show_frame("TossPage")
 
-    def show_settings(self):
-        print('gui.py -> show_settings')
-        self.controller.show_frame("SettingsPage")
+    def show_GameBoardSize(self):
+        self.controller.show_frame("GameBoardSizePage")
+    
+    def show_instructions(self):
+        self.controller.show_frame("InstructionsPage")
+
 
 
 
@@ -259,7 +318,7 @@ class TossPage(tk.Frame):
                                   command=self.toss)
         self.canvas.create_window(400, 200, window=self.btn_toss)  # Adjust position as needed
 
-        self.btn_next = tk.Button(self.canvas, bg="green", fg="white", text=">>", font=("Arial", 16),
+        self.btn_next = tk.Button(self.canvas, bg="green", fg="white", text="Play", font=("Arial", 16),
                                   command=self.go_to_board)
         self.btn_next_window = self.canvas.create_window(400, 300, window=self.btn_next)  # Adjust position as needed
         self.canvas.itemconfigure(self.btn_next_window, state='hidden')  # Hide the Next button initially
@@ -347,6 +406,7 @@ class BoardPage(tk.Frame):
         self.bind("g", lambda event: self.perform_genetic_algorithm_move())
         self.bind("f", lambda event: self.perform_fuzzy_logic_move())
         self.bind("s", lambda event: self.perform_A_star_move())
+
 
     def update_status(self):
         print('gui.py -> update_status', self.board.mode)
