@@ -200,7 +200,7 @@ class DoRaGame(object):
         
         best_individual = max(population, key=lambda x: self.evaluate_individual(x, vertical))
         
-        # Return the move corresponding to the best individual
+        # print("Return the move corresponding to the best individual)
         print('Best individual:', best_individual[0], 'Fitness:', self.evaluate_individual(best_individual, vertical))
         return best_individual[0], self.evaluate_individual(best_individual, vertical)
 
@@ -208,7 +208,7 @@ class DoRaGame(object):
         print('DoRa.py -> initialize_population')
         initial_population = []
         for _ in range(population_size):
-            individual = [self.get_random_move(vertical) for _ in range(10)]  # Example: 10 moves per individual
+            individual = [self.get_random_move(vertical) for _ in range(10)]  # Ex: 10 moves per individual
             initial_population.append(individual)
         
         # print('Initial population:', initial_population)
@@ -221,14 +221,14 @@ class DoRaGame(object):
         game_copy = self.copy()
         for move in individual:
             game_copy.perform_move(move[0], move[1], vertical)
-        # Example fitness function: difference between max and min legal moves
+        # print("Example fitness function: difference between max and min legal moves")
         max_moves = list(game_copy.legal_moves(vertical))
         min_moves = list(game_copy.legal_moves(not vertical))
         return len(max_moves) - len(min_moves)
 
     # def select_parents(self, population, fitness_scores):
     #     print('DoRa.py -> select_parents')
-    #     # Tournament selection: randomly select individuals and choose the best one
+    #     # print("Tournament selection: randomly select individuals and choose the best one")
     #     selected_parents = []
     #     for _ in range(len(population)):
     #         candidates = random.sample(list(enumerate(population)), 2)
@@ -240,19 +240,19 @@ class DoRaGame(object):
     def select_parents(self, population, fitness_scores):
         print('DoRa.py -> select_parents')
         
-        # Calculate the total fitness of the population
+        # print("Calculate the total fitness of the population")
         total_fitness = sum(fitness_scores)
         
         if total_fitness == 0:
-            # Avoid division by zero by assigning equal probability
+            # print("Avoid division by zero by assigning equal probability")
             selection_probabilities = [1 / len(fitness_scores) for _ in fitness_scores]
         else:
             selection_probabilities = [fitness / total_fitness for fitness in fitness_scores]
         
-        # Roulette wheel selection
+        # print("Roulette wheel selection")
         selected_parents = []
         for _ in range(len(population)):
-            # Select a parent based on selection probabilities
+            # print("Select a parent based on selection probabilities")
             parent_index = self.roulette_wheel_selection(selection_probabilities)
             selected_parents.append((parent_index, population[parent_index]))
             
@@ -263,16 +263,16 @@ class DoRaGame(object):
     def roulette_wheel_selection(self, selection_probabilities):
         print('DoRa.py -> roulette_wheel_selection')
         cumulative_sum = 0
-        r = random.random()  # Random number between 0 and 1
+        r = random.random()  
         for i, probability in enumerate(selection_probabilities):
             cumulative_sum += probability
             if cumulative_sum > r:
                 return i
-        return len(selection_probabilities) - 1  # In case of rounding errors
+        return len(selection_probabilities) - 1  # In case of rounding errors, do -1
 
     def crossover(self, selected_parents):
         print('DoRa.py -> crossover')
-        # Single-point crossover: combine parents to create offspring
+        # print("Single-point crossover: combine parents to create offspring")
         offspring = []
         for parent1, parent2 in zip(selected_parents[::2], selected_parents[1::2]):
             crossover_point = random.randint(1, min(len(parent1[1]), len(parent2[1])) - 1)
@@ -283,7 +283,7 @@ class DoRaGame(object):
 
     def mutate(self, individual, vertical):
         print('DoRa.py -> mutate')
-        # Mutation: randomly change a move in the individual
+        # print("Mutation: randomly change a move in the individual")
         mutation_point = random.randint(0, len(individual) - 1)
         individual[mutation_point] = self.get_random_move(vertical)
         return individual
@@ -299,28 +299,31 @@ class DoRaGame(object):
 
     # Fuzzy Logic
 
+    def membership_function(self, value, center, width):
+        # print("Gaussian membership function example")
+        return np.exp(-((value - center) ** 2) / (2 * width ** 2))
+
     def get_fuzzy_logic_move(self, vertical):
-
         print("DoRa.py -> get_fuzzy_logic_move")
-
-        # Example fuzzy logic: prefer center positions, avoid edges
         best_move = None
         best_score = -float('inf')
 
         for (row, col) in self.legal_moves(vertical):
             score = 0
 
-            # Prefer center positions
-            if row in {0, self.num_rows - 1} or col in {0, self.num_cols - 1}:
-                score -= 10  # Penalty for edges
-            else:
-                score += 10  # Reward for center
+            # print("Prefer center positions using a membership function")
+            row_center = self.num_rows / 2
+            col_center = self.num_cols / 2
+
+            score += self.membership_function(row, row_center, self.num_rows / 4)
+            score += self.membership_function(col, col_center, self.num_cols / 4)
 
             if score > best_score:
                 best_score = score
                 best_move = (row, col)
 
         return best_move, best_score
+
     
     # A* Algorithm
     

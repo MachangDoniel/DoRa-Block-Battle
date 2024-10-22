@@ -4,9 +4,9 @@ import random
 import DoRa
 from PIL import Image, ImageTk
 
-# variable
+# glob variable
 limit = 1
-population_size = 100
+population_size = 10
 generations = 100
 delay = 100
 
@@ -14,7 +14,6 @@ class Application(tk.Tk):
     def __init__(self):
         super().__init__()
         self.background_image = tk.PhotoImage(file="images/background.jpg")
-        # Other initialization code...
 
 class Square(tk.Canvas):
     COLOR_EMPTY = "gray"
