@@ -26,6 +26,13 @@ The **Genetic Algorithm** mimics evolutionary processes to generate effective st
 The **A* Algorithm** is commonly used for pathfinding and navigating between points. It calculates the cost to reach the goal while balancing speed and accuracy, making it ideal for finding efficient paths through the game state.
 
 ## Methodology
+
+<div align="center">
+    <img src="images/methodology.png" alt="Methodology Page" width="800"/>
+    <p><em>Figure 1: Methodology Page</em></p>
+</div>
+
+
 ### Game Rules
 **DoRa Block Battle** is played on an NxN matrix. After a toss, each player is assigned a specific move type:
 - **Vertical Move**: Occupies two consecutive vertical cells.
